@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= locals.title ? title :"Login & Homepage" %>
+    </title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://cdn.datatables.net/v/dt/dt-2.0.8/datatables.min.css" rel="stylesheet">
+
+    <script type="text/javascript">
+        function DisableBackButton() {
+            window.history.forward()
+        }
+        DisableBackButton();
+        window.onload = DisableBackButton;
+        window.onpageshow = function (evt) { if (evt.persisted) DisableBackButton() }
+        window.onunload = function () { void (0) }
+    </script>
+
+
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid px-5">
+            <a href="/" class="navbar-brand"><i class=" me-2"></i>Admin</ a>
+                <button class="navbar-toggler" data-bs-target="#my-nav" data-bs-toggle="collapse" aria-controls="my-nav"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div id="my-nav" class="collapse navbar-collapse">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/"></a>
+                        </li>
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/"><i class="fas fa-home me-2 ms-2"></i>Home</a>
+                        </li>
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/add_users"><i class="fas fa-user-plus me-2 ms-2"></i>Add User</a>
+                        </li>
+                        <li class="nav-item active">
+                            <a class="nav-link" href="/logoutadmin"><i class="fas fa-sign-out me-2 ms-2"></i>Log out</a>
+                        </li>
+                        <!-- <li class="nav-item active">
+                            <a class="nav-link" href="#"><i class="fas fa-envelope me-2 ms-2"></i>Contact</a>
+                        </li> -->
+                    </ul>
+                </div>
+        </div>
+    </nav>
+    <!---------------User display ------ -->
+
+    <div class="container">
+        <div class="row my-3">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <% if (locals.users !='' ) { %>
+                        <table class="table table-hover table-striped text-center my-3">
+                            <thead>
+                                <tr class="table-danger ">
+                                    <th>ID</th>
+                                    <th>Image</th>
+                                    <th>Name</th>
+                                    <th>E-mail</th>
+                                    <th>Phone</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% locals.users.forEach((row,index)=> { %>
+                                    <tr class="align-middle">
+                                        <td>
+                                            <%= index+1 %>
+                                        </td>
+                                        <td><img src="<%= row.image %>" width="50" class="img-thumbnail"></td>
+                                        <td>
+                                            <%= row.name %>
+                                        </td>
+                                        <td>
+                                            <%= row.email %>
+                                        </td>
+                                        <td>
+                                            <%= row.phone %>
+                                        </td>
+                                        <td>
+                                            <a href="/edit/<%= row._id %>" class="text-success"><i
+                                                    class="fas fa-edit fa-lg mx-1"></i></a>
+                                            <a href="/delete/<%= row._id %>" class="text-danger ms-3"><i
+                                                    class="fas fa-trash fa-lg mx-1"></i></a>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                            </tbody>
+                        </table>
+                        <% }else{ %>
+                            <h1 class="text-center text-secondary mt-5">No users found in the DB !</h1>
+                            <% } %>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!--  -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.datatables.net/v/dt/dt-2.0.8/datatables.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("table").DataTable({
+                order:[0,'desc']
+            });
+        });
+    </script>
+
+</body>
+
+
+</html>
