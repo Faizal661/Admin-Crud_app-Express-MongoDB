@@ -11,7 +11,7 @@ const {v4:uuidv4}=require('uuid')
 const router=require('./routes/router')
 const nocache = require('nocache');
 // const { error } = require('console')
-
+ 
 
 const app =express()   
 
@@ -33,6 +33,12 @@ app.use(session({
 
 
 app.use(express.static('uploads'))
+
+app.use((req, res, next) => {
+    res.locals.message = req.session.message;
+    delete req.session.message;
+    next();
+});
 
 
 app.set('view engine','ejs');

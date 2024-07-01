@@ -3,6 +3,7 @@ var url = require('url')
 var router = express.Router();
 const User = require('../models/users')
 const multer = require('multer')
+const fs = require('fs')
 
 
 const credentials = {
@@ -42,7 +43,9 @@ var upload = multer({
     storage: storage,
 }).single('image');
 
-//insert an user into db
+
+
+//insert new user into db
 router.post('/add_new', upload, (req, res) => {
     const user = new User({
         name: req.body.name,
@@ -69,7 +72,8 @@ router.post('/add_new', upload, (req, res) => {
         });
 });
 
-//get all users --
+
+//display all users --
 router.get('/', (req, res) => {
     const data = User.find()
     User.find()
@@ -86,10 +90,91 @@ router.get('/', (req, res) => {
         })
 })
 
+//edit Users-page---
 
+router.get('/edit/:id', (req, res) => {
+    let id = req.params.id;
+    User.findById(id)
+        .then(user => {
+            if (!user) {
+                res.redirect('/');
+            } else {
+                res.render('admin/edit_users', {
+                    title: 'Edit User',
+                    user: user,
+                });
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            res.redirect('/');
+        });
+})
+
+//edit-user-route-----
+router.post('/update/:id', upload, (req, res) => {
+    let id = req.params.id;
+    let new_image = '';
+    if (req.file) {
+        new_image = req.file.filename;
+        try {
+            fs.unlinkSync('./uploads/' + req.body.old_image);
+        } catch (err) {
+            console.log(err)
+        }
+    } else {
+        new_image = req.body.old_image;
+    }
+
+    const updatedData = {
+        name: req.body.name,
+        email: req.body.email,
+        phone: req.body.phone,
+        image: new_image, // Make sure `new_image` is defined in your code
+    };
+
+    User.findByIdAndUpdate(id, updatedData, { new: true })
+        .then(result => {
+            req.session.message = {
+                type: 'success',
+                message: 'User updated successfully'
+            };
+            res.redirect('/');
+        })
+        .catch(err => {
+            res.json({ message: err.message, type: 'danger' });
+        });
+})
+
+
+//delete -user-route
+
+router.get('/delete/:id',(req,res)=>{
+    let id=req.params.id;
+    User.findByIdAndDelete(id).exec()
+        .then(result => {
+            if (result && result.image) {
+                return fs.promises.unlink("./uploads/" + result.image)
+                    .catch(err => {
+                        console.log("Failed to delete image file: ", err);
+                    });
+            }
+        })
+        .then(() => {
+            req.session.message = {
+                type: "info",
+                message: "User deleted successfully!",
+            };
+            res.redirect("/");
+        })
+        .catch(err => {
+            res.json({ message: err.message });
+        });
+})
+ 
 
 //---------------------
-
+ 
 
 //login
 router.post('/login', (req, res) => {
