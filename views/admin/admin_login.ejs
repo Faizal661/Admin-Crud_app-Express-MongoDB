@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= locals.title ? title :"Admin Login" %>
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script type="text/javascript">
+        function DisableBackButton() {
+            window.history.forward()
+        }
+        DisableBackButton();
+        window.onload = DisableBackButton;
+        window.onpageshow = function (evt) { if (evt.persisted) DisableBackButton() }
+        window.onunload = function () { void (0) }
+    </script>
+</head>
+
+<body  style="background-color:rgba(39, 33, 33, 0.507); color: red;">
+    <div class="text-center center-div" id="login"">
+        <!-- <% if(locals.logout){ %> -->
+            <!-- <h5 class="text-primary text-center fw-bold"> -->
+                <!-- <%= logout %> -->
+            <!-- </h5> -->
+            <!-- <% } %> -->
+            <h5 class="text-primary text-center fw-bold" id="logout">
+                <span></span>
+            </h5>
+                <div class="container w-25 border rounded py-5 shadow-lg" style="border: 2px solid rgb(255, 0, 0) !important;background-color:rgb(135, 135, 135) ; " >
+                    <div class="title pb-5">
+                        <h2 class="font-weight-bold">Admin Login </h2>
+                    </div>
+                    <form action="/admin_login" method="post">
+                        <div class="form-group">
+                            <input type="text" class="form-control mb-3" placeholder="username" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control" name="password" placeholder="password" required>
+                        </div>
+                        <div class="text-danger text-center my-3 " id="msg">
+                            <span></span>
+                        </div>
+                        <button type="submit" class="btn btn-dark rounded-pill">SUBMIT</button>
+                    </form>
+                    
+                </div>
+    </div>
+    <script>
+
+        const url = window.location.search.substring(1)
+        console.log(url)
+        if (url === 'invalid') {
+            const spanMsg= document.getElementById('msg').querySelector('span');
+            spanMsg.innerText = "Invalid Username and Password";
+        }else if(url === 'logout') {
+            const spanMsg= document.getElementById('logout').querySelector('span');
+            spanMsg.innerText = "Logout successfully";
+        }
+
+    </script>
+
+
+</body></html>

@@ -2,31 +2,81 @@ var express = require('express')
 var url = require('url')
 var router = express.Router();
 const User = require('../models/users')
+const Admin = require('../models/admin')
 const multer = require('multer')
-const fs = require('fs')
+const fs = require('fs');
+const users = require('../models/users');
+
+ 
 
 
-const credentials = {
-    username: 'a',
-    password: 's'
-}
+router.get('/', (req, res) => {
+    // res.render('admin/admin_login',{title:'Login page'})
+    res.render('signin', { title: 'Login page' })
+
+})
+
+//---------------------------------------Admin page--------------------------------
+
+router.get('/admin', (req, res) => {
+    res.render('admin/admin_login')
+})
 
 
-// router.get('/',(req,res)=>{
-//     res.render('admin/home',{title:'Login page'})
-//     // res.render('signin',{title:'Login page'})
+//handle admin login
 
-// })
+router.post('/admin_login', async (req, res) => {
+    console.log('sdfsdfsdf');
+    const { username, password } = req.body;
+    console.log(username,password);
+    const admin = await Admin.findOne({ name: username });
+    console.log(admin);
+    if (admin && await admin.isValidPassword(password)) {
+        req.session.adminId = admin._id;
+        return res.redirect('/admin_home');
+    } else {
+        res.redirect('/admin')
+    }
+})
 
-//-----------------Admin page------------
+//admin homepage  //display all users 
+router.get('/admin_home', adminrequireLogin, async (req, res) => {
+    //console.log('adminfsdfs',req.session.adminId);
+    if (req.session.adminId) {
+        User.find()
+        .then((data) => {
+            res.render('admin/home', {
+                title: 'Home Page',
+                users: data,
+            })
+        })
+        .catch(() => {
+            res.render('admin/home')
+        })
+    } else {
+        res.render('404')
+    }
+})
 
-router.get('/add_users', (req, res) => {
+
+router.get('/logoutadmin',adminrequireLogin, (req, res) => {
+    req.session.destroy(function (err) {
+        if (err) {
+            console.log(err)
+            res.send("Error")
+        } else {
+            // res.render('signin',{logout:"logout successfully...!"}) 
+            res.redirect('/admin?logout')
+        }
+    })
+})
+
+
+router.get('/add_users',adminrequireLogin, (req, res) => {
     res.render('admin/add_users')
 })
+ 
 
-router.get('/logoutadmin', (req, res) => {
-    res.render('signin')
-})
 
 //image upload
 var storage = multer.diskStorage({
@@ -38,7 +88,7 @@ var storage = multer.diskStorage({
     },
 
 })
-
+ 
 var upload = multer({
     storage: storage,
 }).single('image');
@@ -46,7 +96,7 @@ var upload = multer({
 
 
 //insert new user into db
-router.post('/add_new', upload, (req, res) => {
+router.post('/add_new', upload,adminrequireLogin, (req, res) => {
     const user = new User({
         name: req.body.name,
         email: req.body.email,
@@ -61,43 +111,25 @@ router.post('/add_new', upload, (req, res) => {
                 type: 'success',
                 message: 'User added successfully!'
             };
-            res.redirect('/');
+            res.redirect('/admin_home');
         })
         .catch((err) => {
             req.session.message = {
                 type: 'danger',
                 message: err.message
             };
-            res.redirect('/');
+            res.redirect('/admin_home');
         });
 });
 
+//--------edit User  page
 
-//display all users --
-router.get('/', (req, res) => {
-    const data = User.find()
-    User.find()
-        .then((data) => {
-            res.render('admin/home', {
-                title: 'Home Page',
-                users: data,
-
-            })
-
-        })
-        .catch(() => {
-            res.render('admin/home')
-        })
-})
-
-//edit Users-page---
-
-router.get('/edit/:id', (req, res) => {
+router.get('/edit/:id',adminrequireLogin, (req, res) => {
     let id = req.params.id;
     User.findById(id)
         .then(user => {
             if (!user) {
-                res.redirect('/');
+                res.redirect('/admin');
             } else {
                 res.render('admin/edit_users', {
                     title: 'Edit User',
@@ -107,12 +139,12 @@ router.get('/edit/:id', (req, res) => {
         })
         .catch(err => {
             console.error(err);
-            res.redirect('/');
+            res.redirect('/admin');
         });
 })
 
 //edit-user-route-----
-router.post('/update/:id', upload, (req, res) => {
+router.post('/update/:id', upload,adminrequireLogin, (req, res) => {
     let id = req.params.id;
     let new_image = '';
     if (req.file) {
@@ -130,7 +162,7 @@ router.post('/update/:id', upload, (req, res) => {
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,
-        image: new_image, // Make sure `new_image` is defined in your code
+        image: new_image, 
     };
 
     User.findByIdAndUpdate(id, updatedData, { new: true })
@@ -139,7 +171,7 @@ router.post('/update/:id', upload, (req, res) => {
                 type: 'success',
                 message: 'User updated successfully'
             };
-            res.redirect('/');
+            res.redirect('/admin_home');
         })
         .catch(err => {
             res.json({ message: err.message, type: 'danger' });
@@ -147,10 +179,10 @@ router.post('/update/:id', upload, (req, res) => {
 })
 
 
-//delete -user-route
+//delete user-route
 
-router.get('/delete/:id',(req,res)=>{
-    let id=req.params.id;
+router.get('/delete/:id',adminrequireLogin, (req, res) => {
+    let id = req.params.id;
     User.findByIdAndDelete(id).exec()
         .then(result => {
             if (result && result.image) {
@@ -165,55 +197,69 @@ router.get('/delete/:id',(req,res)=>{
                 type: "info",
                 message: "User deleted successfully!",
             };
-            res.redirect("/");
+            res.redirect("/admin_home");
         })
         .catch(err => {
             res.json({ message: err.message });
         });
 })
- 
 
-//---------------------
- 
 
-//login
-router.post('/login', (req, res) => {
-    if (req.body.username == credentials.username && req.body.password == credentials.password) {
-        req.session.user = req.body.username;
-        res.redirect('/homepage')
+//------------------------------------- User Page  ------------------------- 
+
+//------------signup route
+router.get('/signup', (req, res) => {
+    res.render('signup')
+})
+
+
+router.post('/register_new', upload, (req, res) => {
+    const user = new User({
+        name: req.body.name,
+        email: req.body.email, 
+        phone: req.body.phone, 
+        image: req.file.filename,
+        password: req.body.password,
+    });
+
+    user.save()
+        .then(() => {
+            res.redirect('/?newuser')
+        })
+        .catch((err) => {
+            console.log(err)
+            res.redirect('/');
+        });
+});
+
+
+// ---------- user login
+router.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    //console.log(username,password);
+    const user = await User.findOne({ name: username });
+    //console.log(user);
+    if (user && await user.isValidPassword(password)) {
+        req.session.userId = user._id;
+        return res.redirect('/homepage');
     } else {
-        //res.render('signin',{invalid:'Incorrect Usename and password'})
         res.redirect('/?invalid')
     }
 });
 
 
-// Middleware to protect routes
-function requireLogin(req, res, next) {
-    if (!req.session.user) {
-        res.redirect('/');
+//---------user homepage 
+router.get('/homepage', requireLogin, async (req, res) => {
+    if (req.session.userId) {
+        const user = await User.findOne({ _id: req.session.userId });
+        console.log(user);
+        res.render('users/dashboard', { user: user.name, email: user.email, phone: user.phone, image: user.image })
     } else {
-        next();
-    }
-}
-
-//blocking authorised user going back to loginpage
-// function blockBackGoing(req,res,next){
-//     if(req.session.user){
-//         res.render('homepage',{user:req.session.user})
-//     }
-// }
-
-//homepage 
-router.get('/homepage', requireLogin, (req, res) => {
-    if (req.session.user) {
-        res.render('homepage', { user: req.session.user })
-    } else {
-        res.render('homepage', { msg: "Unauthorized User" })
+        res.render('users/dashboard', { msg: "Unauthorized User" })
     }
 })
 
-//logout
+//---------user logout
 router.get('/logout', requireLogin, (req, res) => {
     req.session.destroy(function (err) {
         if (err) {
@@ -228,8 +274,35 @@ router.get('/logout', requireLogin, (req, res) => {
 
 
 
+//----------------------------------------------------
+
+
+
+// Middleware to protect userId routes
+function requireLogin(req, res, next) {
+    if (!req.session.userId) {
+        res.redirect('/');
+    } else {
+        next();
+    }
+}
+
+// Middleware to protect adminId routes
+function adminrequireLogin(req, res, next) {
+    //console.log(req.session.adminId);
+    if (!req.session.adminId) {
+        res.redirect('/admin');
+    } else {
+        next();
+    }
+}
+
+
+
+
 router.get('*', (req, res) => {
     res.render('404')
 })
+
 
 module.exports = router;

@@ -7,10 +7,8 @@ const path=require('path')
 const bodyparser=require( "body-parser")
 const session=require('express-session')
 const {v4:uuidv4}=require('uuid')
-// const db=require('./db')
 const router=require('./routes/router')
 const nocache = require('nocache');
-// const { error } = require('console')
  
 
 const app =express()   
