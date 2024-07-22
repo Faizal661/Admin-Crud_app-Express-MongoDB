@@ -11,8 +11,8 @@ const users = require('../models/users');
 
 
 router.get('/', (req, res) => {
-    // res.render('admin/admin_login',{title:'Login page'})
-    res.render('signin', { title: 'Login page' })
+    //  res.render('admin/admin_login',{title:'Login page'})  //for opening admin login page
+   res.render('signin', { title: 'Login page' })        //for opening user login page   
 
 })
 
@@ -22,20 +22,20 @@ router.get('/admin', (req, res) => {
     res.render('admin/admin_login')
 })
 
-
+ 
 //handle admin login
 
 router.post('/admin_login', async (req, res) => {
-    console.log('sdfsdfsdf');
+    //console.log('sdfsdfsdf');
     const { username, password } = req.body;
-    console.log(username,password);
+    //console.log(username,password);
     const admin = await Admin.findOne({ name: username });
-    console.log(admin);
+    //console.log(admin);
     if (admin && await admin.isValidPassword(password)) {
         req.session.adminId = admin._id;
         return res.redirect('/admin_home');
     } else {
-        res.redirect('/admin')
+        res.redirect('/admin?invalid')
     }
 })
 
@@ -179,6 +179,7 @@ router.post('/update/:id', upload,adminrequireLogin, (req, res) => {
 })
 
 
+
 //delete user-route
 
 router.get('/delete/:id',adminrequireLogin, (req, res) => {
@@ -229,7 +230,7 @@ router.post('/register_new', upload, (req, res) => {
         .catch((err) => {
             console.log(err)
             res.redirect('/');
-        });
+        }); 
 });
 
 
@@ -301,7 +302,7 @@ function adminrequireLogin(req, res, next) {
 
 
 router.get('*', (req, res) => {
-    res.render('404')
+     res.render('404')
 })
 
 
